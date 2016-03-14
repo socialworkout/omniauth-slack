@@ -23,6 +23,7 @@ class CallbackUrlTest < StrategyTestCase
   test "returns the default callback url" do
     url_base = "http://auth.request.com"
     @request.stubs(:url).returns("#{url_base}/some/page")
+    @request.stubs(:query_string).returns('')
     strategy.stubs(:script_name).returns("") # as not to depend on Rack env
     assert_equal "#{url_base}/auth/slack/callback", strategy.callback_url
   end
@@ -31,8 +32,18 @@ class CallbackUrlTest < StrategyTestCase
     @options = { :callback_path => "/auth/slack/done"}
     url_base = "http://auth.request.com"
     @request.stubs(:url).returns("#{url_base}/page/path")
+    @request.stubs(:query_string).returns('')
     strategy.stubs(:script_name).returns("") # as not to depend on Rack env
     assert_equal "#{url_base}/auth/slack/done", strategy.callback_url
+  end
+
+  # Query string would have been omitted in omniauth-oauth2 < 1.4.0
+  test "returns query string with callback url" do
+    url_base = "http://auth.request.com"
+    @request.stubs(:url).returns("#{url_base}/some/page")
+    @request.stubs(:query_string).returns('param=value')
+    strategy.stubs(:script_name).returns("") # as not to depend on Rack env
+    assert_equal "#{url_base}/auth/slack/callback?param=value", strategy.callback_url
   end
 end
 
